@@ -18,9 +18,14 @@ function ClaimTokens({ provider }) {
     
           console.log('Tokens claimed successfully!');
         } catch (error) {
-          console.error('Error claiming tokens:', error.message);
+          // Check if the error message indicates that the tokens cannot be claimed
+          if (error.message.includes('Tokens are still locked')) {
+            alert('Error: Tokens cannot be claimed at this time.');
+          } else {
+            console.error('Error claiming tokens:', error.message);
+          }
         }
-      };
+      }
     
 
     return (

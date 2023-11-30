@@ -36,26 +36,106 @@
     transform: rotate(360deg);
   }
 }
-.connect-wallet-container {
-  text-align: center;
-  margin-top: 20px;
+/* App.css */
+
+/* App.css */
+
+.navbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px;
+  background-color: #0d2c54; /* Fintech color, you can adjust it */
+  color: #ffffff; /* Text color, you can adjust it */
 }
 
 .connect-wallet-button {
   padding: 10px;
-  font-size: 16px;
+  margin-right: 10px;
+  cursor: pointer;
+  text-decoration: none;
+  color: #ffffff;
+  background-color: #0078d4; /* Button color, you can adjust it */
+  border: none;
+  border-radius: 5px;
+}
+
+.connect-wallet-button.disconnected:hover {
+  background-color: #005a8e; /* Adjusted color on hover */
+}
+
+.connected,
+.selected-address,
+.contract-status {
+  margin-right: 10px;
+  color: #ffffff;
+}
+
+.disconnect-wallet-button {
+  padding: 10px;
+  cursor: pointer;
+  color: #ffffff;
+  background-color: #a80000; /* Disconnect button color, you can adjust it */
+  border: none;
+  border-radius: 5px;
+}
+
+.disconnect-wallet-button:hover {
+  background-color: #870000; /* Adjusted color on hover */
+}
+
+.register-organization-container {
+  margin: 20px;
+}
+
+.register-section {
+  margin-bottom: 20px;
+}
+
+h3 {
+  color: #333;
+}
+
+input {
+  margin-right: 10px;
+  padding: 8px;
+}
+
+button {
+  padding: 10px;
+  background-color: #4caf50;
+  color: white;
+  border: none;
   cursor: pointer;
 }
 
-.wallet-status {
-  color: green;
-  margin-top: 10px;
+button:hover {
+  background-color: #45a049;
 }
 
-.selected-address {
-  margin-top: 10px;
+
+@keyframes colorAnimation {
+  0% {
+    background: linear-gradient(45deg, #ff0000, #00ff00, #0000ff);
+  }
+  25% {
+    background: linear-gradient(45deg, #0000ff, #ff0000, #00ff00);
+  }
+  50% {
+    background: linear-gradient(45deg, #00ff00, #0000ff, #ff0000);
+  }
+  75% {
+    background: linear-gradient(45deg, #ff0000, #00ff00, #0000ff);
+  }
+  100% {
+    background: linear-gradient(45deg, #0000ff, #ff0000, #00ff00);
+  }
 }
 
-.contract-status {
-  margin-top: 10px;
+.card {
+  background-color: #fff;
+  border-radius: 8px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  padding: 20px;
+  margin-bottom: 20px;
 }
