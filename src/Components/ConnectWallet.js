@@ -3,6 +3,7 @@ import Web3Modal from 'web3modal';
 import { ethers } from 'ethers';
 import { contractABI2, contractAddress2 } from '../utils/constant2';
 import '../App.css';
+import { Link } from 'react-router-dom';
 
 const ConnectWallet = ({ setProvider }) => {
   const [provider, setLocalProvider] = useState(null);
@@ -10,18 +11,28 @@ const ConnectWallet = ({ setProvider }) => {
   const [isConnected, setIsConnected] = useState(false);
   const [selectedAddress, setSelectedAddress] = useState(null);
   const [whitelisted, setWhitelisted] = useState(false);
-  const [timer, setTimer] = useState(0);
-  const [endTime, setEndTime] = useState(null);
+  const [canClaim, setCanClaim] = useState(false);
 
   const checkWhitelistStatus = useCallback(async (address) => {
     try {
-      const isWhitelisted = await contract.isWhitelisted(address);
+      const isWhitelisted = await contract.whitelist(address);
       return isWhitelisted;
     } catch (error) {
       console.error('Error checking whitelist status:', error.message);
       return false;
     }
   }, [contract]);
+
+  const checkClaimStatus = useCallback(async (address) => {
+    try {
+      const isWhitelisted = await checkWhitelistStatus(address);
+      setWhitelisted(isWhitelisted);
+      // Set claim eligibility based on whitelisting status
+      setCanClaim(isWhitelisted);
+    } catch (error) {
+      console.error('Error checking claim status:', error.message);
+    }
+  }, [checkWhitelistStatus]);
 
   const connectWallet = async () => {
     const web3Modal = new Web3Modal();
@@ -37,33 +48,21 @@ const ConnectWallet = ({ setProvider }) => {
     const firstAccount = accounts[0];
     setSelectedAddress(firstAccount);
 
-    // Check whitelisting status
-    const isWhitelisted = await checkWhitelistStatus(firstAccount);
-    setWhitelisted(isWhitelisted);
-
-    // Set up a timer to update every 10 seconds
-    const currentTime = Math.floor(Date.now() / 1000);
-    const endTime = currentTime + 300; // 5 minutes (300 seconds)
-    setEndTime(endTime);
-
-    // const intervalId = setInterval(() => {
-    //   const remainingTime = endTime - Math.floor(Date.now() / 1000);
-    //   setTimer(remainingTime > 0 ? remainingTime : 0);
-    // }, 1000);
+    // Check claim eligibility when wallet is connected
+    await checkClaimStatus(firstAccount);
 
     // Show alert when wallet is connected
     alert(`Wallet connected successfully!\nAddress: ${firstAccount}`);
   };
 
   const disconnectWallet = () => {
-    clearInterval(timer);
     setLocalProvider(null);
     setProvider(null);
     setIsConnected(false);
     setSelectedAddress(null);
     setContract(null);
     setWhitelisted(false);
-    setEndTime(null);
+    setCanClaim(false);
 
     // Additional logic for disconnecting, if needed
     alert('Wallet disconnected successfully!');
@@ -83,22 +82,18 @@ const ConnectWallet = ({ setProvider }) => {
   }, [provider]);
 
   useEffect(() => {
-    const checkAndSetWhitelistStatus = async () => {
-      if (selectedAddress) {
-        const isWhitelisted = await checkWhitelistStatus(selectedAddress);
-        setWhitelisted(isWhitelisted);
-      }
-    };
-
-    checkAndSetWhitelistStatus();
-  }, [selectedAddress, checkWhitelistStatus]);
+    // Check claim eligibility when component mounts or when selectedAddress changes
+    if (selectedAddress) {
+      checkClaimStatus(selectedAddress);
+    }
+  }, [selectedAddress, checkClaimStatus]);
 
   return (
     <div className="navbar">
       {!isConnected && (
-        <a className="connect-wallet-button disconnected" onClick={connectWallet}>
+        <Link to="/" className="connect-wallet-button disconnected" onClick={connectWallet}>
           Connect Wallet
-        </a>
+        </Link>
       )}
       {isConnected && (
         <div>
@@ -107,7 +102,11 @@ const ConnectWallet = ({ setProvider }) => {
             Disconnect Wallet
           </button>
           <p>Status: {whitelisted ? 'Whitelisted' : 'Not Whitelisted'}</p>
-          <p>Timer: {timer} seconds</p>
+          {whitelisted && canClaim && (
+            <Link to="/claim" className="claim-button">
+              Claim Tokens
+            </Link>
+          )}
         </div>
       )}
       {selectedAddress && <p className="selected-address">Selected Address: {selectedAddress}</p>}

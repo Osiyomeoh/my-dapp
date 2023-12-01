@@ -11,12 +11,13 @@ function App() {
   return (
     <Router>
       <div className="App">
-      <ConnectWallet setProvider={setProvider} />
+        <ConnectWallet setProvider={setProvider} />
         <Routes>
-         
+          {/* Your other routes go here */}
           {provider && (
             <>
-              <Route path="/register" element={<Register provider={provider} />} />
+              {/* Ensure that the path matches the one you're navigating to */}
+              <Route path="/" element={<Register provider={provider} />} />
               <Route path="/claim" element={<Claim provider={provider} />} />
             </>
           )}

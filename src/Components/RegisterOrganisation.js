@@ -2,6 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { ethers } from 'ethers';
 import { contractABI2, contractAddress2 } from '../utils/constant2';
 import { useNavigate } from 'react-router-dom';
+import DatePicker from 'react-datepicker';
+import 'react-datepicker/dist/react-datepicker.css';
 
 function RegisterOrganization({ provider }) {
   const [name, setName] = useState('');
@@ -9,11 +11,18 @@ function RegisterOrganization({ provider }) {
   const [amount, setAmount] = useState(0);
   const [stakeholderAddress, setStakeholderAddress] = useState('');
   const [stakeholderAmount, setStakeholderAmount] = useState(0);
-  const [stakeholderReleaseTime, setStakeholderReleaseTime] = useState('');
   const [adminAddress, setAdminAddress] = useState('');
   const [whitelistAddress, setWhitelistAddress] = useState('');
   const [events, setEvents] = useState([]);
+  const [vestingReleaseDateTime, setVestingReleaseDateTime] = useState('');
   const navigate = useNavigate();
+  const [stakeholderType, setStakeholderType] = useState('community');
+
+  const [organizationAddress, setOrganizationAddress] = useState('');
+
+  const handleOrganizationAddressChange = (e) => {
+    setOrganizationAddress(e.target.value);
+  };
 
   const goToClaimPage = () => {
     navigate('/claim'); 
@@ -26,7 +35,7 @@ function RegisterOrganization({ provider }) {
     setWhitelistAddress('');
     setStakeholderAddress('');
     setStakeholderAmount(0);
-    setStakeholderReleaseTime('');
+    setVestingReleaseDateTime('');
   };
 
  
@@ -130,7 +139,12 @@ function RegisterOrganization({ provider }) {
       const signer = provider.getSigner();
       const contract = new ethers.Contract(contractAddress2, contractABI2, signer);
 
-      const registerTransaction = await contract.registerOrganization(name, symbol, amount);
+      const registerTransaction = await contract.registerOrganization(
+        organizationAddress,
+        name,
+        symbol,
+        amount
+      );
       await registerTransaction.wait();
 
       resetFields();
@@ -141,6 +155,7 @@ function RegisterOrganization({ provider }) {
       alert(`Error registering organization: ${error.message}`);
     }
   };
+
 
   const addAdmin = async () => {
     if (!provider) {
@@ -229,58 +244,110 @@ function RegisterOrganization({ provider }) {
       alert(`Error removing from whitelist: ${error.message}`);
     }
   };
+  const [isOwner, setIsOwner] = useState(false);
 
-  const addStakeholder = async () => {
-    if (!provider) {
-      console.error('Wallet not connected');
-      return;
-    }
+  useEffect(() => {
+    const checkOwnership = async () => {
+      if (!provider) return;
 
-    try {
       const signer = provider.getSigner();
       const contract = new ethers.Contract(contractAddress2, contractABI2, signer);
 
-      // Convert stakeholderReleaseTime to Unix timestamp
-      const releaseTime = Math.floor(new Date(stakeholderReleaseTime).getTime() / 1000);
+      try {
+        const owner = await contract.owner();
+        const currentAddress = await signer.getAddress();
+        setIsOwner(owner === currentAddress);
+      } catch (error) {
+        console.error('Error checking ownership:', error.message);
+      }
+    };
 
-      const addVestingTransaction = await contract.addVesting(
-        stakeholderAddress,
-        stakeholderAmount,
-        releaseTime
-      );
+    checkOwnership();
+  }, [provider]);
+ 
 
-      await addVestingTransaction.wait();
-      resetFields();
-      console.log('Stakeholder added successfully!');
-      alert('Stakeholder added successfully!');
-    } catch (error) {
-      console.error('Error adding stakeholder:', error.message);
-      alert(`Error adding stakeholder: ${error.message}`);
-    }
+
+  const handleVestingReleaseDateTimeChange = (e) => {
+    setVestingReleaseDateTime(e.target.value);
   };
+  const addStakeholder = async () => {
+    if (!provider) {
+        console.error('Wallet not connected');
+        return;
+    }
+
+    try {
+        const signer = provider.getSigner();
+        const contract = new ethers.Contract(contractAddress2, contractABI2, signer);
+
+        // Convert vestingReleaseDateTime to Unix timestamp
+        const releaseTime = Math.floor(new Date(vestingReleaseDateTime).getTime() / 1000);
+
+        const addStakeholderTransaction = await contract.addStakeholder(
+            organizationAddress,
+            stakeholderAddress,
+            stakeholderAmount,
+            releaseTime,
+            organizationName,
+            stakeholderType // Pass the stakeholderType
+        );
+
+        await addStakeholderTransaction.wait();
+        resetFields();
+        console.log('Stakeholder added successfully!');
+        alert('Stakeholder added successfully!');
+    } catch (error) {
+        console.error('Error adding stakeholder:', error.message);
+        alert(`Error adding stakeholder: ${error.message}`);
+    }
+};
+
 
   
   return (
     <div className="register-organization-container">
-    <div className="register-section card">
-      <h3>Organization Registration:</h3>
-      <input type="text" value={name} onChange={(e) => setName(e.target.value)} placeholder="Organization Name" />
-      <input type="text" value={symbol} onChange={(e) => setSymbol(e.target.value)} placeholder="Token Symbol" />
-      <input type="number" value={amount} onChange={(e) => setAmount(e.target.value)} placeholder="Initial Supply" />
-      <button onClick={registerOrganization}>Register Organization</button>
-    </div>
-
-    <div className="register-section card">
-        <h3>Admin Operations:</h3>
+  <div className="register-section card">
+        <h3>Organization Registration:</h3>
         <input
           type="text"
-          value={adminAddress}
-          onChange={(e) => setAdminAddress(e.target.value)}
-          placeholder="Admin Address"
+          value={organizationAddress}
+          onChange={handleOrganizationAddressChange}
+          placeholder="Organization Address"
         />
-        <button onClick={addAdmin}>Add Admin</button>
-        <button onClick={removeAdmin}>Remove Admin</button>
+        <input
+          type="text"
+          value={name}
+          onChange={(e) => setName(e.target.value)}
+          placeholder="Organization Name"
+        />
+        <input
+          type="text"
+          value={symbol}
+          onChange={(e) => setSymbol(e.target.value)}
+          placeholder="Token Symbol"
+        />
+        <input
+          type="number"
+          value={amount}
+          onChange={(e) => setAmount(e.target.value)}
+          placeholder="Initial Supply"
+        />
+        <button onClick={registerOrganization}>Register Organization</button>
       </div>
+   {/* Render the Admin Operations section only if the connected wallet is the owner */}
+   {isOwner && (
+        <div className="register-section card">
+          <h3>Admin Operations:</h3>
+          <input
+            type="text"
+            value={adminAddress}
+            onChange={(e) => setAdminAddress(e.target.value)}
+            placeholder="Admin Address"
+          />
+          <button onClick={addAdmin}>Add Admin</button>
+          <button onClick={removeAdmin}>Remove Admin</button>
+        </div>
+      )}
 
       <div className="register-section card">
         <h3>Whitelist Operations:</h3>
@@ -308,11 +375,15 @@ function RegisterOrganization({ provider }) {
           onChange={(e) => setStakeholderAmount(e.target.value)}
           placeholder="Amount"
         />
-        <input
-          type="datetime-local"
-          value={stakeholderReleaseTime}
-          onChange={(e) => setStakeholderReleaseTime(e.target.value)}
-          placeholder="Release Time"
+        <DatePicker
+          selected={vestingReleaseDateTime}
+          onChange={(date) => setVestingReleaseDateTime(date)}
+          showTimeSelect
+          timeFormat="HH:mm"
+          timeIntervals={15}
+          timeCaption="Time"
+          dateFormat="MMMM d, yyyy h:mm aa"
+          placeholderText="Select Date and Time"
         />
         <button onClick={addStakeholder}>Add Stakeholder</button>
       </div>

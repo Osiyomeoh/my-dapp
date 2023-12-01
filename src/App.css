@@ -139,3 +139,18 @@ button:hover {
   padding: 20px;
   margin-bottom: 20px;
 }
+
+.claim-button {
+  background-color: transparent;
+  color: green;
+  border: 2px solid green;
+  padding: 5px 10px;
+  border-radius: 5px;
+  text-decoration: none;
+  transition: background-color 0.3s, color 0.3s;
+}
+
+.claim-button:hover {
+  background-color: green;
+  color: white;
+}
