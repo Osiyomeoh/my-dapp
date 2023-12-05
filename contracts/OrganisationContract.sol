@@ -6,29 +6,24 @@ import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 contract OrganizationContract is ERC20 {
     address public owner;
     mapping(address => bool) public admins;
-
-    struct VestingInfo {
-        uint256 amount;
-        uint256 releaseTime;
-    }
+    mapping(address => bool) public registeredOrganizations;
+    mapping(address => bool) public whitelist;
 
     struct StakeholderInfo {
-        address organization;
         uint256 vestingAmount;
         uint256 vestingReleaseTime;
-        string stakeholderType; // Added stakeholderType
+        string stakeholderType;
     }
 
-    mapping(address => VestingInfo) public vestingBalances;
-    mapping(address => bool) public whitelist;
     mapping(address => StakeholderInfo) public stakeholders;
     mapping(address => string) public organizationNames;
 
     event WhitelistUpdated(address indexed user, bool status);
     event AdminAdded(address indexed admin);
     event AdminRemoved(address indexed admin);
+    event TokensClaimed(address indexed claimant, uint256 amount);
     event OrganizationRegistered(address indexed organization, string name, string symbol, uint256 initialSupply);
-    event StakeholderAdded(address indexed organization, string indexed organizationName, address indexed stakeholder, uint256 vestingAmount, uint256 vestingReleaseTime, string stakeholderType); // Updated event
+    event StakeholderAdded(address indexed stakeholder, uint256 vestingAmount, uint256 vestingReleaseTime, string stakeholderType);
 
     constructor(string memory name, string memory symbol, uint256 initialSupply) ERC20(name, symbol) {
         owner = msg.sender;
@@ -46,8 +41,26 @@ contract OrganizationContract is ERC20 {
         _;
     }
 
+    modifier onlyRegisteredOrganization() {
+        require(registeredOrganizations[msg.sender], "Not a registered organization");
+        _;
+    }
+
     modifier onlyWhitelisted() {
         require(whitelist[msg.sender], "Address not whitelisted");
+        _;
+    }
+
+    modifier onlyAllowedRoles() {
+        require(registeredOrganizations[msg.sender] || admins[msg.sender] || msg.sender == owner, "Not authorized");
+        _;
+    }
+
+    modifier onlyRegisteredOrgOrWhitelisted() {
+        require(
+            registeredOrganizations[msg.sender] || whitelist[msg.sender],
+            "Not a registered organization or stakeholder"
+        );
         _;
     }
 
@@ -56,22 +69,25 @@ contract OrganizationContract is ERC20 {
         string memory _name,
         string memory _symbol,
         uint256 _initialSupply
-    ) external {
+    ) external onlyAdmin {
         require(bytes(_name).length > 0, "Name cannot be empty");
         require(bytes(_symbol).length > 0, "Symbol cannot be empty");
         require(_initialSupply > 0, "Initial supply must be greater than 0");
 
         _mint(organizationAddress, _initialSupply);
         organizationNames[organizationAddress] = _name;
+        registeredOrganizations[organizationAddress] = true;
         emit OrganizationRegistered(organizationAddress, _name, _symbol, _initialSupply);
     }
 
-    function addVesting(
-        address user,
-        uint256 amount,
-        uint256 releaseTime
-    ) external onlyAdmin {
-        vestingBalances[user] = VestingInfo(amount, releaseTime);
+    function addToWhitelist(address user) external onlyAdmin {
+        whitelist[user] = true;
+        emit WhitelistUpdated(user, true);
+    }
+
+    function removeFromWhitelist(address user) external onlyAdmin {
+        whitelist[user] = false;
+        emit WhitelistUpdated(user, false);
     }
 
     function addAdmin(address newAdmin) external onlyOwner {
@@ -85,40 +101,38 @@ contract OrganizationContract is ERC20 {
         emit AdminRemoved(adminToRemove);
     }
 
-    function addToWhitelist(address user) external onlyAdmin {
-        whitelist[user] = true;
-        emit WhitelistUpdated(user, true);
-    }
-
-    function removeFromWhitelist(address user) external onlyAdmin {
-        whitelist[user] = false;
-        emit WhitelistUpdated(user, false);
-    }
-
     function addStakeholder(
-        address organization,
         address stakeholder,
         uint256 vestingAmount,
         uint256 vestingReleaseTime,
-        string memory organizationName,
-        string memory stakeholderType // Added stakeholderType
-    ) external onlyAdmin {
-        stakeholders[stakeholder] = StakeholderInfo({
-            organization: organization,
-            vestingAmount: vestingAmount,
-            vestingReleaseTime: vestingReleaseTime,
-            stakeholderType: stakeholderType // Set stakeholderType
-        });
-
-        emit StakeholderAdded(organization, organizationName, stakeholder, vestingAmount, vestingReleaseTime, stakeholderType);
+        string memory stakeholderType
+    ) external onlyAllowedRoles {
+        stakeholders[stakeholder] = StakeholderInfo(vestingAmount, vestingReleaseTime, stakeholderType);
+        emit StakeholderAdded(stakeholder, vestingAmount, vestingReleaseTime, stakeholderType);
     }
 
-    function claimTokens() external {
-        require(whitelist[msg.sender] || admins[msg.sender], "Not whitelisted or admin");
+    function claimTokens() external onlyRegisteredOrgOrWhitelisted {
+        require(stakeholders[msg.sender].vestingAmount > 0, "No tokens to claim");
 
-        VestingInfo storage info = vestingBalances[msg.sender];
-        require(block.timestamp >= info.releaseTime, "Tokens are still locked");
+        StakeholderInfo storage stakeholder = stakeholders[msg.sender];
+        require(block.timestamp >= stakeholder.vestingReleaseTime, "Tokens are still locked");
 
-        _mint(msg.sender, info.amount);
+        uint256 additionalAmount = calculateAdditionalAmount(stakeholder.vestingReleaseTime, stakeholder.vestingAmount);
+        _mint(msg.sender, additionalAmount);
+        emit TokensClaimed(msg.sender, additionalAmount);
+        stakeholder.vestingAmount = 0; // Reset vesting amount after claiming
+    }
+
+    function calculateAdditionalAmount(uint256 releaseTime, uint256 initialAmount) internal view returns (uint256) {
+        if (block.timestamp <= releaseTime) {
+            return 0;
+        }
+
+        uint256 timeElapsedInMinutes = (block.timestamp - releaseTime) / 60;
+        uint256 ratePerMinute = 1; // Define your rate here
+
+        uint256 additionalAmount = timeElapsedInMinutes * ratePerMinute;
+        uint256 totalAmount = additionalAmount + initialAmount;
+        return totalAmount;
     }
 }

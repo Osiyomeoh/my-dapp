@@ -4,7 +4,6 @@ import RegisterOrganization from '../Components/RegisterOrganisation';
 const Register = ({ provider }) => {
   return (
     <div>
-      <h2>Register Page</h2>
       <RegisterOrganization provider={provider} />
     </div>
   );

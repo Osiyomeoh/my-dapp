@@ -2,8 +2,9 @@ import React, { useState, useEffect, useCallback } from 'react';
 import Web3Modal from 'web3modal';
 import { ethers } from 'ethers';
 import { contractABI2, contractAddress2 } from '../utils/constant2';
-import '../App.css';
+import '../index.css';
 import { Link } from 'react-router-dom';
+import AlertComponent from './ShowAlert';
 
 const ConnectWallet = ({ setProvider }) => {
   const [provider, setLocalProvider] = useState(null);
@@ -12,6 +13,48 @@ const ConnectWallet = ({ setProvider }) => {
   const [selectedAddress, setSelectedAddress] = useState(null);
   const [whitelisted, setWhitelisted] = useState(false);
   const [canClaim, setCanClaim] = useState(false);
+  const [releaseTime, setReleaseTime] = useState(null);
+  const [timeLeft, setTimeLeft] = useState(null);
+  const [alertInfo, setAlertInfo] = useState({ show: false, message: '', type: '' });
+
+  const showAlert = (message, type = 'info') => {
+    setAlertInfo({ show: true, message, type });
+  };
+
+  const closeAlert = () => {
+    setAlertInfo({ ...alertInfo, show: false });
+  };
+const fetchStakeholderReleaseTime = useCallback(async (address) => {
+  try {
+    const stakeholderInfo = await contract.stakeholders(address);
+    setReleaseTime(stakeholderInfo.vestingReleaseTime.toNumber());
+  } catch (error) {
+    console.error('Error fetching release time:', error.message);
+  }
+}, [contract]);
+
+useEffect(() => {
+  if (selectedAddress && contract) {
+    fetchStakeholderReleaseTime(selectedAddress);
+  }
+}, [selectedAddress, contract, fetchStakeholderReleaseTime]);
+
+useEffect(() => {
+  const timer = setTimeout(() => {
+    const currentTime = Math.floor(Date.now() / 1000); // current time in seconds
+    const timeRemaining = releaseTime - currentTime;
+    if (timeRemaining > 0) {
+      setTimeLeft(timeRemaining);
+    } else {
+      setTimeLeft(0);
+      // Assuming the claim eligibility is based on the countdown
+      setCanClaim(true);
+    }
+  }, 1000);
+
+  return () => clearTimeout(timer);
+}, [releaseTime, timeLeft]);
+
 
   const checkWhitelistStatus = useCallback(async (address) => {
     try {
@@ -52,7 +95,17 @@ const ConnectWallet = ({ setProvider }) => {
     await checkClaimStatus(firstAccount);
 
     // Show alert when wallet is connected
-    alert(`Wallet connected successfully!\nAddress: ${firstAccount}`);
+    showAlert(`Wallet connected successfully!\nAddress: ${firstAccount}`);
+  };
+
+  const shortenAddress = (address) => {
+    return `${address.substring(0, 6)}...${address.substring(address.length - 4)}`;
+  };
+
+ 
+  const copyToClipboard = (text) => {
+    navigator.clipboard.writeText(text);
+    showAlert('Address copied to clipboard!');
   };
 
   const disconnectWallet = () => {
@@ -65,7 +118,7 @@ const ConnectWallet = ({ setProvider }) => {
     setCanClaim(false);
 
     // Additional logic for disconnecting, if needed
-    alert('Wallet disconnected successfully!');
+    showAlert('Wallet disconnected successfully!');
   };
 
   const createContract = (currentProvider) => {
@@ -89,30 +142,48 @@ const ConnectWallet = ({ setProvider }) => {
   }, [selectedAddress, checkClaimStatus]);
 
   return (
-    <div className="navbar">
+    <div className="flex justify-between items-center bg-gray-800 p-4 text-white">
+{alertInfo.show && <AlertComponent message={alertInfo.message} type={alertInfo.type} onClose={closeAlert} />}
+    <div className="flex-1">
       {!isConnected && (
-        <Link to="/" className="connect-wallet-button disconnected" onClick={connectWallet}>
+        <Link to="/" className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded" onClick={connectWallet}>
           Connect Wallet
         </Link>
       )}
       {isConnected && (
-        <div>
-          <p className="connected">Wallet Connected!</p>
-          <button className="disconnect-wallet-button" onClick={disconnectWallet}>
-            Disconnect Wallet
-          </button>
-          <p>Status: {whitelisted ? 'Whitelisted' : 'Not Whitelisted'}</p>
-          {whitelisted && canClaim && (
-            <Link to="/claim" className="claim-button">
-              Claim Tokens
-            </Link>
-          )}
-        </div>
+        <button className="bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded" onClick={disconnectWallet}>
+          Disconnect Wallet
+        </button>
       )}
-      {selectedAddress && <p className="selected-address">Selected Address: {selectedAddress}</p>}
-      {contract && <p className="contract-status">Contract Instance Ready!</p>}
     </div>
-  );
-};
+
+    {isConnected && (
+  <div className="flex-1 flex flex-col items-center">
+    <p className="text-green-400">Wallet Connected!</p>
+    <p>Status: <span className={whitelisted ? 'text-green-500' : 'text-red-500'}>{whitelisted ? 'Whitelisted' : 'Not Whitelisted'}</span></p>
+    {timeLeft > 0 ? (
+      <p>Time until release: {timeLeft} seconds</p>
+    ) : (
+      whitelisted && canClaim && (
+        <Link to="/claim" className="mt-4 bg-transparent border border-purple-500 text-purple-500 hover:bg-purple-500 hover:text-white font-bold py-2 px-4 rounded">
+          Claim Tokens
+        </Link>
+      )
+    )}
+  </div>
+)}
+
+    <div className="flex-1 text-right">
+      {selectedAddress && (
+        <button className="text-sm text-blue-500 hover:text-blue-700" onClick={() => copyToClipboard(selectedAddress)}>
+          {shortenAddress(selectedAddress)}
+        </button>
+      )}
+      {contract && <p className="text-sm text-gray-300">Contract Instance Ready!</p>}
+    </div>
+  </div>
+);
+      }
+
 
 export default ConnectWallet;

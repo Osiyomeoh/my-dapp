@@ -45,45 +45,52 @@
   justify-content: space-between;
   align-items: center;
   padding: 10px;
-  background-color: #0d2c54; /* Fintech color, you can adjust it */
-  color: #ffffff; /* Text color, you can adjust it */
+  background-color: #3498db; /* Blue color */
+  color: #fff;
 }
 
-.connect-wallet-button {
-  padding: 10px;
-  margin-right: 10px;
-  cursor: pointer;
+.button-container {
+  display: flex;
+  align-items: center;
+}
+
+.connect-wallet-button,
+.disconnect-wallet-button,
+.claim-button {
+  padding: 10px 20px;
+  margin: 0 10px;
+  color: #fff;
   text-decoration: none;
-  color: #ffffff;
-  background-color: #0078d4; /* Button color, you can adjust it */
   border: none;
-  border-radius: 5px;
+  cursor: pointer;
+  font-size: 14px;
+  background-color: #2980b9; /* Darker blue color */
+  transition: background-color 0.3s ease;
 }
 
-.connect-wallet-button.disconnected:hover {
-  background-color: #005a8e; /* Adjusted color on hover */
-}
-
-.connected,
-.selected-address,
-.contract-status {
-  margin-right: 10px;
-  color: #ffffff;
+.connect-wallet-button.disconnected {
+  background-color: #2ecc71; /* Green color */
 }
 
 .disconnect-wallet-button {
-  padding: 10px;
-  cursor: pointer;
-  color: #ffffff;
-  background-color: #a80000; /* Disconnect button color, you can adjust it */
-  border: none;
-  border-radius: 5px;
+  background-color: #e74c3c; /* Red color */
 }
 
-.disconnect-wallet-button:hover {
-  background-color: #870000; /* Adjusted color on hover */
+.claim-button {
+  background-color: #1e90ff; /* Dodger blue color */
 }
 
+.connect-wallet-button.loading,
+.disconnect-wallet-button.loading {
+  cursor: not-allowed;
+  opacity: 0.7;
+}
+
+.connect-wallet-button:active,
+.disconnect-wallet-button:active,
+.claim-button:active {
+  background-color: #21618c; /* Dark blue color on button press */
+}
 .register-organization-container {
   margin: 20px;
 }
