@@ -2,9 +2,47 @@
   "_format": "hh-sol-cache-2",
   "files": {
     "C:\\Users\\USER\\Documents\\Dapp\\my-dapp\\contracts\\OrganisationContract.sol": {
-      "lastModificationDate": 1701793222547,
-      "contentHash": "eaab0a86b94dc13f864b5a4f01e0c0ca",
+      "lastModificationDate": 1701933955083,
+      "contentHash": "ab60af6b507fe95b415283b93ebd0c63",
       "sourceName": "contracts/OrganisationContract.sol",
+      "solcConfig": {
+        "version": "0.8.19",
+        "settings": {
+          "optimizer": {
+            "enabled": false,
+            "runs": 200
+          },
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers",
+                "metadata"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          }
+        }
+      },
+      "imports": [
+        "@openzeppelin/contracts/token/ERC20/ERC20.sol",
+        "./OrganisationToken.sol"
+      ],
+      "versionPragmas": [
+        "^0.8.0"
+      ],
+      "artifacts": [
+        "OrganizationContract"
+      ]
+    },
+    "C:\\Users\\USER\\Documents\\Dapp\\my-dapp\\contracts\\OrganisationToken.sol": {
+      "lastModificationDate": 1701933978536,
+      "contentHash": "1f8f029a5c926c117aeb1a18f9e46a3c",
+      "sourceName": "contracts/OrganisationToken.sol",
       "solcConfig": {
         "version": "0.8.19",
         "settings": {
@@ -35,7 +73,7 @@
         "^0.8.0"
       ],
       "artifacts": [
-        "OrganizationContract"
+        "OrganizationToken"
       ]
     },
     "C:\\Users\\USER\\node_modules\\@openzeppelin\\contracts\\token\\ERC20\\ERC20.sol": {

@@ -8,17 +8,21 @@ async function main() {
 
   const OrganizationContract = await hre.ethers.getContractFactory("OrganizationContract");
 
+
+  const Organization = await OrganizationContract.deploy();
+  await Organization.deployed();
+  console.log("OrganizationContract deployed to:", Organization.address);
+
+  const OrganizationToken = await hre.ethers.getContractFactory("OrganizationToken");
+
   
   const name = "SamToken";
   const symbol = "SAM";
   const initialSupply = ethers.utils.parseUnits('1000000', 18);
 
-
-
-
-  const Organization = await OrganizationContract.deploy(name, symbol, initialSupply);
-  await Organization.deployed();
-  console.log("OrganizationContract deployed to:", Organization.address);
+  const Token = await OrganizationToken.deploy(name, symbol, initialSupply);
+  await Token.deployed();
+  console.log("OrganizationToken deployed to:", Token.address);
 }
 
 main()
