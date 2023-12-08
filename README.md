@@ -1,31 +1,29 @@
 
-# DAPP
+# Token Vesting DApp
 
 ## Overview
-Ethereum Wallet Connector is a web application designed to interact with the Ethereum blockchain. It allows users to connect their Ethereum wallets, check whitelisting status, claim tokens, and perform administrative tasks like adding or removing stakeholders and managing organization details.
+Token Vesting DApp is a decentralized application designed for web3 organizations to create and manage token vesting schedules. It allows organizations to set up vesting schedules for various stakeholders, including community members, investors, pre-sale buyers, and founders, in line with their tokenomics model.
 
-## Features
-- Connect to Ethereum wallets using Web3Modal.
-- Display connected wallet address and contract status.
-- Check and display whitelisting status for the connected address.
-- Claim tokens (for whitelisted addresses).
-- Add or remove addresses from the whitelist.
-- Fetch and display organization and token details.
-- Manage stakeholders.
+## Key Features
+- **Vesting Schedule Creation:** Allows organizations to define vesting schedules for different stakeholders.
+- **Stakeholder Management:** Manage different types of stakeholders such as community members, investors, pre-sale buyers, and founders.
+- **Token Distribution Control:** Controls the distribution of tokens based on the defined vesting schedules.
+- **Ethereum Wallet Integration:** Users can connect their Ethereum wallets for interactions.
+- **Transparency and Security:** Ensures transparent and secure handling of token vesting.
 
 ## Prerequisites
-- Node.js
-- npm or yarn
-- Ethereum wallet (e.g., MetaMask)
+- Node.js installed.
+- A modern web browser.
+- An Ethereum wallet like MetaMask.
 
 ## Installation
 1. Clone the repository:
    ```bash
-   git clone [https://github.com/Osiyomeoh]
+   git clone [https://github.com/Osiyomeoh/my-dapp-git]
    ```
 2. Navigate to the project directory:
    ```bash
-   cd ethereum-wallet-connector
+   cd token-vesting-dapp
    ```
 3. Install dependencies:
    ```bash
@@ -36,7 +34,7 @@ Ethereum Wallet Connector is a web application designed to interact with the Eth
    yarn install
    ```
 
-## Usage
+## Running the DApp
 1. Start the application:
    ```bash
    npm start
@@ -45,15 +43,17 @@ Ethereum Wallet Connector is a web application designed to interact with the Eth
    ```bash
    yarn start
    ```
-2. Open `http://localhost:3000` in your web browser.
-3. Connect your Ethereum wallet using the "Connect Wallet" button.
-4. Interact with the application's features as desired.
+2. Access the DApp at `http://localhost:3000`.
 
-## Contract Interaction
-The application interacts with a smart contract on the Ethereum blockchain. The contract allows for various operations like registering organizations, creating tokens, adding stakeholders, and more.
+## Usage Guide
+- **Connect Wallet:** Use the "Connect Wallet" button to link your Ethereum wallet.
+- **Create Vesting Schedule:** Navigate to the vesting schedule section to create schedules for different stakeholders.
+- **Manage Stakeholders:** Add or remove stakeholders and assign them to appropriate schedules.
+- **Monitor Distribution:** Keep track of token distributions as per the vesting timelines.
 
 ## Contributing
-Contributions to the project are welcome. Please follow the standard fork, branch, and pull request workflow.
+Contributions are welcome. Please fork the repository and submit pull requests for any enhancements.
 
 ## License
-This project is licensed under the MIT License 
+This project is licensed under the MIT License
+
