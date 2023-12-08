@@ -78,25 +78,31 @@ useEffect(() => {
   }, [checkWhitelistStatus]);
 
   const connectWallet = async () => {
-    const web3Modal = new Web3Modal();
-    const connection = await web3Modal.connect();
-    const currentProvider = new ethers.providers.Web3Provider(connection);
-    setLocalProvider(currentProvider);
-    setProvider(currentProvider);
-    setIsConnected(true);
-
-    setContract(createContract(currentProvider));
-
-    const accounts = await currentProvider.send('eth_accounts', []);
-    const firstAccount = accounts[0];
-    setSelectedAddress(firstAccount);
-
-    // Check claim eligibility when wallet is connected
-    await checkClaimStatus(firstAccount);
-
-    // Show alert when wallet is connected
-    showAlert(`Wallet connected successfully!\nAddress: ${firstAccount}`);
+    try {
+      const web3Modal = new Web3Modal();
+      const connection = await web3Modal.connect();
+      const currentProvider = new ethers.providers.Web3Provider(connection);
+      setLocalProvider(currentProvider);
+      setProvider(currentProvider);
+      setIsConnected(true);
+  
+      setContract(createContract(currentProvider));
+  
+      const accounts = await currentProvider.send('eth_accounts', []);
+      const firstAccount = accounts[0];
+      setSelectedAddress(firstAccount);
+  
+      // Check claim eligibility when wallet is connected
+      await checkClaimStatus(firstAccount);
+  
+      // Show alert when wallet is connected
+      showAlert(`Wallet connected successfully!\nAddress: ${firstAccount}`);
+    } catch (error) {
+      console.error('Wallet connection cancelled or failed:', error);
+      showAlert('Wallet connection cancelled or failed.', 'error');
+    }
   };
+  
 
   const shortenAddress = (address) => {
     return `${address.substring(0, 6)}...${address.substring(address.length - 4)}`;
